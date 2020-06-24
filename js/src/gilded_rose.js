@@ -4,52 +4,61 @@ function Item(name, sell_in, quality) {
   this.quality = quality;
 }
 
-var items = []
+var items = [];
+
+const CONJURED = "Conjured";
+const BRIE = "Aged Brie";
+const PASSES = "Backstage passes to a TAFKAL80ETC concert";
+const SULFURAS = "Sulfuras, Hand of Ragnaros";
+const RESTRICTED = [BRIE, CONJURED, PASSES, SULFURAS];
+
+const getSellIn = ({ name, sell_in }) =>
+  name === SULFURAS ? sell_in : sell_in - 1;
+
+const getQuality = ({ name, quality, sell_in }) => {
+  let q = quality;
+
+  if (q > 0 && !RESTRICTED.includes(name)) {
+    return q - 1;
+  }
+
+  if (name === CONJURED) {
+    return q > 1 ? q - 2 : 0;
+  }
+
+  if (name === BRIE) {
+    if (q < 50) {
+      q += 1;
+    }
+    if (sell_in < 0 && q < 50) {
+      q += 1;
+    }
+    return q;
+  }
+
+  if (name === PASSES) {
+    if (sell_in < 0) {
+      return 0;
+    }
+    if (sell_in > 0 && q < 50) {
+      q += 1;
+    }
+    if (sell_in < 11 && q < 50) {
+      q += 1;
+    }
+    if (sell_in < 6 && q < 50) {
+      q += 1;
+    }
+    return q;
+  }
+
+  return q;
+};
 
 function update_quality() {
-  for (var i = 0; i < items.length; i++) {
-    if (items[i].name != 'Aged Brie' && items[i].name != 'Backstage passes to a TAFKAL80ETC concert') {
-      if (items[i].quality > 0) {
-        if (items[i].name != 'Sulfuras, Hand of Ragnaros') {
-          items[i].quality = items[i].quality - 1
-        }
-      }
-    } else {
-      if (items[i].quality < 50) {
-        items[i].quality = items[i].quality + 1
-        if (items[i].name == 'Backstage passes to a TAFKAL80ETC concert') {
-          if (items[i].sell_in < 11) {
-            if (items[i].quality < 50) {
-              items[i].quality = items[i].quality + 1
-            }
-          }
-          if (items[i].sell_in < 6) {
-            if (items[i].quality < 50) {
-              items[i].quality = items[i].quality + 1
-            }
-          }
-        }
-      }
-    }
-    if (items[i].name != 'Sulfuras, Hand of Ragnaros') {
-      items[i].sell_in = items[i].sell_in - 1;
-    }
-    if (items[i].sell_in < 0) {
-      if (items[i].name != 'Aged Brie') {
-        if (items[i].name != 'Backstage passes to a TAFKAL80ETC concert') {
-          if (items[i].quality > 0) {
-            if (items[i].name != 'Sulfuras, Hand of Ragnaros') {
-              items[i].quality = items[i].quality - 1
-            }
-          }
-        } else {
-          items[i].quality = items[i].quality - items[i].quality
-        }
-      } else {
-        if (items[i].quality < 50) {
-          items[i].quality = items[i].quality + 1
-        }
-      }
-    }
-  }
+  items = items.map((item) => ({
+    name: item.name,
+    sell_in: getSellIn(item),
+    quality: getQuality(item),
+  }));
 }
